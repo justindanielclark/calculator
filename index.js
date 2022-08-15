@@ -3,8 +3,8 @@ const Calculator= {
     heldOperand: ``,
     displayNumber: `0`,
     DisplayEl: document.querySelector(`#display`),
-    OperationDisplayEl: document.querySelector(`operation`),
-    HeldDisplayEL: document.querySelector(`held`),
+    OperandDisplayEl: document.querySelector(`#operand`),
+    HeldDisplayEL: document.querySelector(`#held`),
     keysDownMap: new Map(),
     keysMap: new Map(),
 
@@ -24,8 +24,8 @@ const Calculator= {
         this.keysMap.set(`-`, `operand`);
         this.keysMap.set(`/`, `operand`);
         this.keysMap.set(`*`, `operand`);
-        this.keysMap.set(`Enter`, `operator`)
-        this.keysMap.set(`Backspace`, `operator`);
+        this.keysMap.set(`Enter`, `operation`)
+        this.keysMap.set(`Backspace`, `operation`);
 
         window.addEventListener('keydown', (e)=>this.handleKeyDown(e));
 
@@ -41,6 +41,12 @@ const Calculator= {
             if(this.keysMap.get(e.key) === `number`){
                 this.handleNumber(e.key);
             }
+            if(this.keysMap.get(e.key) === `operand`){
+                this.handleOperand(e.key);
+            }
+            if(this.keysMap.get(e.key) === `operation`){
+                this.handleOperation(e.key);
+            }
         }
     },
     handleKeyUp: function(e){
@@ -50,7 +56,7 @@ const Calculator= {
     },
     handleButton: function(e){
         if(e.target.dataset.operand){
-            console.log(`operand`);
+            this.handleOperand(e.target.dataset.operand);
         }
         else if (e.target.dataset.operation){
             this.handleOperation(e.target.dataset.operation);
@@ -78,11 +84,43 @@ const Calculator= {
         }
     },
     handleOperand: function(operand){
+        switch(operand){
+            case `+`: {
+                if(this.heldNumber){
+                    this.heldNumber = (parseFloat(this.heldNumber) + parseFloat(this.displayNumber)).toString();
+                    this.HeldDisplayEL.innerText = this.heldNumber;
+                    this.displayNumber = `0`;
+                    this.DisplayEl.innerText = this.displayNumber;
+                } else {
+                    this.heldNumber = this.displayNumber;
+                    this.HeldDisplayEL.innerText = this.displayNumber;
+                    this.displayNumber = `0`;
+                    this.DisplayEl.innerText = this.displayNumber;
+                }
+                this.OperandDisplayEl.innerText = `+`
+                break;
+            }
+            case `-`: {
+                break;
+            }
+            case `/`: {
+                break;
+            }
+            case `*`: {
+                break;
+            }
+        }
 
     },
     handleOperation: function(operation){
         switch(operation){
             case `Clear`: {
+                if(this.displayNumber === `0`){
+                    this.heldNumber = `0`;
+                    this.HeldDisplayEL.innerText = `0`;
+                    this.heldOperand = ``;
+                    this.OperandDisplayEl.innerText = this.heldOperand;
+                }
                 this.displayNumber = `0`;
                 this.DisplayEl.innerText = this.displayNumber;
                 break;
@@ -98,11 +136,17 @@ const Calculator= {
                 break;
             }
             case `Enter`: {
-    
+                
+                return;
                 break;
             }
         }
 
+    },
+    updateView: function(){
+        this.HeldDisplayEL.innerText = this.heldNumber;
+        this.OperandDisplayEl.innerText = this.heldOperand;
+        this.DisplayEl.innerHTML = this.displayNumber;
     }
 }
 
