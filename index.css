@@ -16,10 +16,10 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: 2fr repeat(5, 1fr);
-    width: 200px;
-    height: 350px;
+    width: 400px;
+    height: 700px;
     background-color: #321;
-    font-size: 1em;
+    font-size: 2em;
 }
 #calculator > * {
     font-size: inherit;
@@ -44,7 +44,7 @@ body {
     }
     #operand {
         flex: 1 0 20%;
-        font-size: 1rem;
+        font-size: 2rem;
     }
     #display {
         flex: 1 0 40%;

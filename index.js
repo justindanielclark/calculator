@@ -1,7 +1,7 @@
 const Calculator= {
-    heldNumber: ``,
-    heldOperand: ``,
-    displayNumber: `0`,
+    heldNumber: null,
+    heldOperand: null,
+    displayNumber: null,
     DisplayEl: document.querySelector(`#display`),
     OperandDisplayEl: document.querySelector(`#operand`),
     HeldDisplayEL: document.querySelector(`#held`),
@@ -36,26 +36,26 @@ const Calculator= {
         });
     },
     handleKeyDown: function(e){
-        if(this.keysMap.get(e.key) && !this.keysDownMap.get(e.key)){
+        if (this.keysMap.get(e.key) && !this.keysDownMap.get(e.key)){
             this.keysDownMap.set(e.key, true);
-            if(this.keysMap.get(e.key) === `number`){
+            if (this.keysMap.get(e.key) === `number`){
                 this.handleNumber(e.key);
             }
-            if(this.keysMap.get(e.key) === `operand`){
+            if (this.keysMap.get(e.key) === `operand`){
                 this.handleOperand(e.key);
             }
-            if(this.keysMap.get(e.key) === `operation`){
+            if (this.keysMap.get(e.key) === `operation`){
                 this.handleOperation(e.key);
             }
         }
     },
     handleKeyUp: function(e){
-        if(this.keysDownMap.get(e.key)){
+        if (this.keysDownMap.get(e.key)){
             this.keysDownMap.delete(e.key);
         }
     },
     handleButton: function(e){
-        if(e.target.dataset.operand){
+        if (e.target.dataset.operand){
             this.handleOperand(e.target.dataset.operand);
         }
         else if (e.target.dataset.operation){
@@ -66,87 +66,122 @@ const Calculator= {
         }
     },
     handleNumber: function(number){
+        number = number.toString();
         if (number === `.`){
-            if (!this.displayNumber.includes(`.`)){
+            if (this.displayNumber === null){
+                this.displayNumber = `0.`;
+            } else if (!this.displayNumber.includes(`.`)){
                 this.displayNumber += number;
-                this.DisplayEl.innerText = this.displayNumber;
             }
-        } else if (number === `0` && !(this.displayNumber === `0`)){
-            this.displayNumber += number;
-            this.DisplayEl.innerText = this.displayNumber;
-        } else {
-            if(this.displayNumber === `0`){
-                this.displayNumber = number;
+        } else if (number === `0`){
+            if (this.displayNumber === null){
+                this.displayNumber = `0`
+            } else if (this.displayNumber === `0`){
+                return;
             } else {
+                this.displayNumber += '0';
+            }
+        } else {
+            if (this.displayNumber === `0`){
+                this.displayNumber = number;
+            } else if (this.displayNumber === null){
+                this.displayNumber = number;
+            }
+            else {
                 this.displayNumber += number;
             }
-            this.DisplayEl.innerText = this.displayNumber;
         }
+        this.updateView();
     },
     handleOperand: function(operand){
-        switch(operand){
-            case `+`: {
-                if(this.heldNumber){
-                    this.heldNumber = (parseFloat(this.heldNumber) + parseFloat(this.displayNumber)).toString();
-                    this.HeldDisplayEL.innerText = this.heldNumber;
-                    this.displayNumber = `0`;
-                    this.DisplayEl.innerText = this.displayNumber;
-                } else {
-                    this.heldNumber = this.displayNumber;
-                    this.HeldDisplayEL.innerText = this.displayNumber;
-                    this.displayNumber = `0`;
-                    this.DisplayEl.innerText = this.displayNumber;
+        if (this.heldNumber !== null && this.heldOperand === operand && this.displayNumber !== null){
+            switch(operand){
+                case `+`: {
+                    this.heldNumber = (math.add(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    break;
                 }
-                this.OperandDisplayEl.innerText = `+`
-                break;
+                case `-`: {
+                    this.heldNumber = (math.subtract(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    break;
+                }
+                case `/`: {
+                    this.heldNumber = (math.divide(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    break;
+                }
+                case `*`: {
+                    this.heldNumber = (math.multiply(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    break;
+                }
             }
-            case `-`: {
-                break;
-            }
-            case `/`: {
-                break;
-            }
-            case `*`: {
-                break;
-            }
+            this.displayNumber = null;
+        } else if(this.heldNumber !== null && this.heldOperand !== null && this.heldOperand !== operand && this.displayNumber !== null){
+            this.handleOperand(this.heldOperand);
+            this.heldOperand = operand;
+        } else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber !== null){
+            this.heldNumber = this.displayNumber;
+            this.heldOperand = operand;
+            this.displayNumber = null;
+        } else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber === null){
+            this.heldOperand = operand;
+        } else if (this.heldNumber === null && this.heldOperand === null && this.displayNumber !== null){
+            this.heldNumber = this.displayNumber;
+            this.heldOperand = operand;
+            this.displayNumber = null;
+        } else if (this.heldNumber !== null && this.heldOperand !== null && this.heldOperand !== operand && this.displayNumber === null){
+            this.heldOperand = operand;
         }
+        this.updateView();
 
     },
     handleOperation: function(operation){
         switch(operation){
             case `Clear`: {
-                if(this.displayNumber === `0`){
-                    this.heldNumber = `0`;
-                    this.HeldDisplayEL.innerText = `0`;
-                    this.heldOperand = ``;
-                    this.OperandDisplayEl.innerText = this.heldOperand;
-                }
-                this.displayNumber = `0`;
-                this.DisplayEl.innerText = this.displayNumber;
+                this.heldNumber = null;
+                this.heldOperand = null;
+                this.displayNumber = null;
                 break;
             }
             case `Backspace`: {
-                if(this.displayNumber.length === 1){
-                    this.displayNumber = `0`;
-                    this.DisplayEl.innerText = this.displayNumber;
-                } else {
-                    this.displayNumber = this.displayNumber.slice(0, -1);
-                    this.DisplayEl.innerText = this.displayNumber;
+                if(this.displayNumber !== null){
+                    if (this.displayNumber.length === 1){
+                        this.displayNumber = null;
+                    } else {
+                        this.displayNumber = this.displayNumber.slice(0,-1);
+                    }
                 }
                 break;
             }
             case `Enter`: {
-                
-                return;
+                if (this.heldNumber === null && this.heldOperand === null && this.displayNumber !== null){
+                    this.heldNumber = this.displayNumber;
+                    this.displayNumber = null;
+                }
+                else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber !== null){
+                    this.heldNumber = this.displayNumber;
+                    this.displayNumber = null;
+                } else if (this.heldNumber !== null & this.heldOperand !== null && this.displayNumber !== null){
+                    this.handleOperand(this.heldOperand);
+                    this.heldOperand = null;
+                } else if (this.heldNumber !== null & this.heldOperand !== null && this.displayNumber === null){
+                    this.heldOperand = null;
+                }
                 break;
             }
         }
-
+        this.updateView();
     },
     updateView: function(){
-        this.HeldDisplayEL.innerText = this.heldNumber;
+        if(this.heldNumber !== null){
+            this.HeldDisplayEL.innerText = this.heldNumber;
+        } else {
+            this.HeldDisplayEL.innerText = null;
+        }
         this.OperandDisplayEl.innerText = this.heldOperand;
-        this.DisplayEl.innerHTML = this.displayNumber;
+        if(this.displayNumber !== null){
+            this.DisplayEl.innerHTML = this.displayNumber
+        } else {
+            this.DisplayEl.innerHTML = null;
+        }
     }
 }
 
