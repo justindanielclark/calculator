@@ -4,14 +4,17 @@ const background = {
     canvas: document.querySelector(`#scrollingBackground`),
     colors: [],
     boxSize: 100,
+    colorShift: 0,
     shiftX: 3,
-    shiftY: -2,
+    shiftY: 2,
     shiftXTotal: 0,
     shiftYTotal: 0,
     insetShift: null,
     init: function(){
         this.canvas.width = this.canvas.getBoundingClientRect().width;
         this.canvas.height = this.canvas.getBoundingClientRect().height;
+        let canvas = document.querySelector(`#scrollingBackground`);
+        
 
         this.colors.push(this.generatePastelColor());
         this.colors.push(this.generatePastelColor(this.colors[0]));
@@ -21,8 +24,8 @@ const background = {
     },
     draw: function(){
         let ctx = this.canvas.getContext(`2d`);
-        for (let i = -2; i < Math.floor(this.canvas.width/this.boxSize)+1; i++){
-            for (let j = -2; j < Math.floor(this.canvas.height/this.boxSize)+1; j++){
+        for (let i = 0; i < Math.floor(this.canvas.width/this.boxSize)+1; i++){
+            for (let j = 0; j < Math.floor(this.canvas.height/this.boxSize)+1; j++){
                 let x = i*this.boxSize+this.shiftXTotal;
                 let y = j*this.boxSize+this.shiftYTotal;
                 let xDiff = (i+1)*this.boxSize+this.shiftXTotal;
@@ -57,8 +60,16 @@ const background = {
                 ctx.fill();
             }
         }
-        this.shiftXTotal = (this.shiftXTotal - this.shiftX)%this.boxSize
-        this.shiftYTotal = (this.shiftYTotal - this.shiftY)%this.boxSize
+        this.shiftXTotal += this.shiftX;
+        this.shiftYTotal += this.shiftY;
+
+        if(this.shiftXTotal > this.boxSize){
+            this.shiftXTotal = this.shiftXTotal % this.boxSize;
+        }
+        if(this.shiftYTotal > this.boxSize){
+            this.shiftYTotal = this.shiftYTotal % this.boxSize
+        }
+        
     },
     generatePastelColor: function(color = null){
         if(!color){
@@ -93,11 +104,20 @@ const background = {
     },
     setUpdateTimer: function(timer){
         setInterval(()=>{this.draw()}, 50)
+    },
+    toggleColorShift: function(){
+        // console.log('hello');
+        // this.colorShift = this.colorShift ? 1 : 0;
+    },
+    clamp: function(value, min, max){
+        if(value < min) return min;
+        else if(value > max) return max;
+        return value;
     }
 }
 
 background.init();
-background.draw();
+background.setUpdateTimer();
 
 
 
