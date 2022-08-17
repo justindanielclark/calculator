@@ -26,6 +26,7 @@ const Calculator= {
         this.keysMap.set(`*`, `operand`);
         this.keysMap.set(`Enter`, `operation`)
         this.keysMap.set(`Backspace`, `operation`);
+        this.keysMap.set(`Delete`, `operation`);
 
         window.addEventListener('keydown', (e)=>this.handleKeyDown(e));
 
@@ -135,7 +136,7 @@ const Calculator= {
     },
     handleOperation: function(operation){
         switch(operation){
-            case `Clear`: {
+            case `Delete`: {
                 this.heldNumber = null;
                 this.heldOperand = null;
                 this.displayNumber = null;
