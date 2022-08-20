@@ -207,9 +207,12 @@ const Calculator= {
             if(count === numString.length){
                 return `0.0e-${count-2}`
             }
-            return numString.slice(count, this.notToExceed(count+10, numString.length)) + `e-${count}`;
+            return numString.slice(count, this.notToExceed(count+10, numString.length)) + `e-${count-1}`;
         }
-        return numString.slice(0, 14);
+        if(decimalLoc > 13){
+            return numString.slice(0,1) + `.` + numString.slice(1,5) + `e${decimalLoc-1}`
+        }
+        return numString.slice(0,13);
     },
     notToExceed: function(value, max){
         if(value > max) return max;
@@ -230,7 +233,7 @@ const background = {
         this.colors.push(this.generatePastelColor());
         this.colors.push(this.generatePastelColor(this.colors[0]));
         this.insetShift = this.boxSize/10;
-        window.addEventListener('resize', ()=>this.setWidthAndHeight());
+        this.handleResize();
     },
     setWidthAndHeight: function(){
         this.canvas.width = this.canvas.getBoundingClientRect().width;
@@ -290,6 +293,9 @@ const background = {
             this.shiftYTotal = this.shiftYTotal % this.boxSize
         }
         
+    },
+    handleResize(){
+        window.addEventListener('resize', ()=>this.setWidthAndHeight());
     },
     generatePastelColor: function(color = null){
         if(!color){
