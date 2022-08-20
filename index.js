@@ -164,14 +164,11 @@ const Calculator= {
             }
             case `Enter`: {
                 if(this.displayNumber === this.divideByZeroMessage){return};
-                if (this.heldNumber === null && this.heldOperand === null && this.displayNumber !== null){
+                if (this.heldOperand === null && this.displayNumber !== null){
                     this.heldNumber = this.displayNumber;
                     this.displayNumber = null;
                 }
-                else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber !== null){
-                    this.heldNumber = this.displayNumber;
-                    this.displayNumber = null;
-                } else if (this.heldNumber !== null & this.heldOperand !== null && this.displayNumber !== null){
+                else if (this.heldNumber !== null & this.heldOperand !== null && this.displayNumber !== null){
                     this.handleOperand(this.heldOperand);
                     this.heldOperand = null;
                 } else if (this.heldNumber !== null & this.heldOperand !== null && this.displayNumber === null){
@@ -196,7 +193,19 @@ const Calculator= {
         }
     },
     trimExcess: function(numString){
-        return numString.length > 14 ? numString.slice(0,1) + `.` + numString.slice(1, 5) + `e${numString.length-1}`: numString;
+        if(numString.length < 14){return numString}
+        let decimalLoc = numString.indexOf(`.`)
+        if(decimalLoc === -1){  
+            return numString.slice(0,1) + `.` + numString.slice(1, 5) + `e${numString.length-1}`;
+        }
+        if(numString.startsWith(`0.`)){
+            let count = 2;
+            while(numString[count]===`0`){
+                count++;
+            }
+            return numString.slice(count, count+1) + `e-${count-1}`;
+        }
+
     }
 
 }
@@ -238,7 +247,7 @@ const background = {
                 ctx.fillStyle = color;
                 let grd = ctx.createLinearGradient(xInset, yInset, xDiffInset, yDiffInset);
                 grd.addColorStop(0, color);
-                grd.addColorStop(.5, `hsl(${color.hue}, ${color.saturation}%, ${color.lightness+5}%)`);
+                grd.addColorStop(.5, `hsl(${color.hue}, ${color.saturation}%, ${color.lightness-15}%)`);
                 grd.addColorStop(1, color);
                 ctx.fillStyle = grd;
                 ctx.fillRect(x, y, this.boxSize, this.boxSize);
@@ -291,7 +300,7 @@ const background = {
                 }
             } 
         } else {
-            return {hue: (color.hue + 100) % 360,
+            return {hue: (color.hue + 60) % 360,
                 saturation: color.saturation,
                 lightness: color.lightness,
                 toString: function(){
@@ -307,7 +316,7 @@ const background = {
         } 
     },
     setUpdateTimer: function(timer){
-        setInterval(()=>{this.draw()}, 15)
+        setInterval(()=>{this.draw()}, 30)
     },
     clamp: function(value, min, max){
         if(value < min) return min;
