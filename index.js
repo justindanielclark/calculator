@@ -7,6 +7,7 @@ const Calculator= {
     HeldDisplayEL: document.querySelector(`#held`),
     keysDownMap: new Map(),
     keysMap: new Map(),
+    divideByZeroMessage: `lol no`,
 
     init: function(){
         this.keysMap.set(`0`, `number`);
@@ -67,6 +68,7 @@ const Calculator= {
         }
     },
     handleNumber: function(number){
+        if(this.displayNumber === this.divideByZeroMessage){return};
         number = number.toString();
         if (number === `.`){
             if (this.displayNumber === null){
@@ -95,44 +97,51 @@ const Calculator= {
         this.updateView();
     },
     handleOperand: function(operand){
-        if (this.heldNumber !== null && this.heldOperand === operand && this.displayNumber !== null){
-            switch(operand){
-                case `+`: {
-                    this.heldNumber = math.format((math.add(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
-                    break;
+        if (this.displayNumber !==  this.divideByZeroMessage){
+            if (this.heldNumber !== null && this.heldOperand === operand && this.displayNumber !== null){
+                switch(operand){
+                    case `+`: {
+                        this.heldNumber = math.format((math.add(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
+                        break;
+                    }
+                    case `-`: {
+                        this.heldNumber = math.format((math.subtract(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
+                        break;
+                    }
+                    case `/`: {
+                        if(this.displayNumber === `0`){
+                            this.heldNumber = null;
+                            this.displayNumber = `lol no`;
+                            return;
+                        } else {
+                            this.heldNumber = math.format((math.divide(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
+                        }
+                        break;
+                    }
+                    case `*`: {
+                        this.heldNumber = math.format((math.multiply(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
+                        break;
+                    }
                 }
-                case `-`: {
-                    this.heldNumber = math.format((math.subtract(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
-                    break;
-                }
-                case `/`: {
-                    this.heldNumber = math.format((math.divide(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
-                    break;
-                }
-                case `*`: {
-                    this.heldNumber = math.format((math.multiply(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
-                    break;
-                }
+                this.displayNumber = null;
+            } else if(this.heldNumber !== null && this.heldOperand !== null && this.heldOperand !== operand && this.displayNumber !== null){
+                this.handleOperand(this.heldOperand);
+                this.heldOperand = operand;
+            } else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber !== null){
+                this.heldNumber = this.displayNumber;
+                this.heldOperand = operand;
+                this.displayNumber = null;
+            } else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber === null){
+                this.heldOperand = operand;
+            } else if (this.heldNumber === null && this.heldOperand === null && this.displayNumber !== null){
+                this.heldNumber = this.displayNumber;
+                this.heldOperand = operand;
+                this.displayNumber = null;
+            } else if (this.heldNumber !== null && this.heldOperand !== null && this.heldOperand !== operand && this.displayNumber === null){
+                this.heldOperand = operand;
             }
-            this.displayNumber = null;
-        } else if(this.heldNumber !== null && this.heldOperand !== null && this.heldOperand !== operand && this.displayNumber !== null){
-            this.handleOperand(this.heldOperand);
-            this.heldOperand = operand;
-        } else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber !== null){
-            this.heldNumber = this.displayNumber;
-            this.heldOperand = operand;
-            this.displayNumber = null;
-        } else if (this.heldNumber !== null && this.heldOperand === null && this.displayNumber === null){
-            this.heldOperand = operand;
-        } else if (this.heldNumber === null && this.heldOperand === null && this.displayNumber !== null){
-            this.heldNumber = this.displayNumber;
-            this.heldOperand = operand;
-            this.displayNumber = null;
-        } else if (this.heldNumber !== null && this.heldOperand !== null && this.heldOperand !== operand && this.displayNumber === null){
-            this.heldOperand = operand;
+            this.updateView();
         }
-        this.updateView();
-
     },
     handleOperation: function(operation){
         switch(operation){
@@ -143,6 +152,7 @@ const Calculator= {
                 break;
             }
             case `Backspace`: {
+                if(this.displayNumber === this.divideByZeroMessage){return};
                 if(this.displayNumber !== null){
                     if (this.displayNumber.length === 1){
                         this.displayNumber = null;
@@ -153,6 +163,7 @@ const Calculator= {
                 break;
             }
             case `Enter`: {
+                if(this.displayNumber === this.divideByZeroMessage){return};
                 if (this.heldNumber === null && this.heldOperand === null && this.displayNumber !== null){
                     this.heldNumber = this.displayNumber;
                     this.displayNumber = null;
