@@ -198,16 +198,23 @@ const Calculator= {
         if(decimalLoc === -1){  
             return numString.slice(0,1) + `.` + numString.slice(1, 5) + `e${numString.length-1}`;
         }
+
         if(numString.startsWith(`0.`)){
             let count = 2;
             while(numString[count]===`0`){
                 count++;
             }
-            return numString.slice(count, count+1) + `e-${count-1}`;
+            if(count === numString.length){
+                return `0.0e-${count-2}`
+            }
+            return numString.slice(count, this.notToExceed(count+10, numString.length)) + `e-${count}`;
         }
-
+        return numString.slice(0, 14);
+    },
+    notToExceed: function(value, max){
+        if(value > max) return max;
+        return value;
     }
-
 }
 const background = {
     canvas: document.querySelector(`#scrollingBackground`),
