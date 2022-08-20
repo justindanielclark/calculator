@@ -98,19 +98,19 @@ const Calculator= {
         if (this.heldNumber !== null && this.heldOperand === operand && this.displayNumber !== null){
             switch(operand){
                 case `+`: {
-                    this.heldNumber = (math.add(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    this.heldNumber = math.format((math.add(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
                     break;
                 }
                 case `-`: {
-                    this.heldNumber = (math.subtract(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    this.heldNumber = math.format((math.subtract(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
                     break;
                 }
                 case `/`: {
-                    this.heldNumber = (math.divide(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    this.heldNumber = math.format((math.divide(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
                     break;
                 }
                 case `*`: {
-                    this.heldNumber = (math.multiply(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))).toString();
+                    this.heldNumber = math.format((math.multiply(math.bignumber(this.heldNumber), math.bignumber(this.displayNumber))), {notation: `fixed`}).toString();
                     break;
                 }
             }
@@ -173,17 +173,139 @@ const Calculator= {
     },
     updateView: function(){
         if(this.heldNumber !== null){
-            this.HeldDisplayEL.innerText = this.heldNumber;
+            this.HeldDisplayEL.innerText = this.trimExcess(this.heldNumber);
         } else {
             this.HeldDisplayEL.innerText = null;
         }
         this.OperandDisplayEl.innerText = this.heldOperand;
         if(this.displayNumber !== null){
-            this.DisplayEl.innerHTML = this.displayNumber
+            this.DisplayEl.innerHTML = this.trimExcess(this.displayNumber);
         } else {
             this.DisplayEl.innerHTML = null;
         }
+    },
+    trimExcess: function(numString){
+        return numString.length > 14 ? numString.slice(0,1) + `.` + numString.slice(1, 5) + `e${numString.length-1}`: numString;
+    }
+
+}
+const background = {
+    canvas: document.querySelector(`#scrollingBackground`),
+    colors: [],
+    boxSize: 50,
+    shiftX: 1,
+    shiftY: 1,
+    shiftXTotal: 0,
+    shiftYTotal: 0,
+    insetShift: null, // set as 1/10th of boxSize in init();
+    init: function(){
+        this.setWidthAndHeight();
+        this.colors.push(this.generatePastelColor());
+        this.colors.push(this.generatePastelColor(this.colors[0]));
+        this.insetShift = this.boxSize/10;
+        window.addEventListener('resize', ()=>this.setWidthAndHeight());
+    },
+    setWidthAndHeight: function(){
+        this.canvas.width = this.canvas.getBoundingClientRect().width;
+        this.canvas.height = this.canvas.getBoundingClientRect().height;
+    },
+    draw: function(){
+        let ctx = this.canvas.getContext(`2d`);
+        ctx.clearRect(0-this.boxSize, 0-this.boxSize, this.canvas.width+this.boxSize, this.canvas.height+this.boxSize);
+        for (let i = -1; i < Math.floor(this.canvas.width/this.boxSize)+1; i++){
+            for (let j = -1; j < Math.floor(this.canvas.height/this.boxSize)+1; j++){
+                let x = i*this.boxSize+this.shiftXTotal;
+                let xInset = i*this.boxSize+this.shiftXTotal+this.insetShift;
+                let y = j*this.boxSize+this.shiftYTotal;
+                let yInset = j*this.boxSize+this.shiftYTotal+this.insetShift;
+                let xDiff = (i+1)*this.boxSize+this.shiftXTotal;
+                let xDiffInset = (i+1)*this.boxSize+this.shiftXTotal-this.insetShift;
+                let yDiff = (j+1)*this.boxSize+this.shiftYTotal;
+                let yDiffInset = (j+1)*this.boxSize+this.shiftYTotal-this.insetShift;
+
+                let color = this.colors[Math.abs((i+j))%2];
+                ctx.fillStyle = color;
+                let grd = ctx.createLinearGradient(xInset, yInset, xDiffInset, yDiffInset);
+                grd.addColorStop(0, color);
+                grd.addColorStop(.5, `hsl(${color.hue}, ${color.saturation}%, ${color.lightness+5}%)`);
+                grd.addColorStop(1, color);
+                ctx.fillStyle = grd;
+                ctx.fillRect(x, y, this.boxSize, this.boxSize);
+                
+                ctx.fillStyle = color.lighter();
+                ctx.beginPath();
+                ctx.moveTo(x, yDiff);
+                ctx.lineTo(xInset, yDiffInset)
+                ctx.lineTo(xInset, yInset)
+                ctx.lineTo(xDiffInset, yInset)
+                ctx.lineTo(xDiff, y)
+                ctx.lineTo(x, y)
+                ctx.fill();
+
+                ctx.fillStyle = color.darker();
+                ctx.beginPath();
+                ctx.moveTo(x, yDiff);
+                ctx.lineTo(xInset, yDiffInset);
+                ctx.lineTo(xDiffInset, yDiffInset);
+                ctx.lineTo(xDiffInset, yInset);
+                ctx.lineTo(xDiff, y);
+                ctx.lineTo(xDiff, yDiff);
+                ctx.fill();
+            }
+        }
+        this.shiftXTotal += this.shiftX;
+        this.shiftYTotal += this.shiftY;
+
+        if(this.shiftXTotal > this.boxSize){
+            this.shiftXTotal = this.shiftXTotal % this.boxSize;
+        }
+        if(this.shiftYTotal > this.boxSize){
+            this.shiftYTotal = this.shiftYTotal % this.boxSize
+        }
+        
+    },
+    generatePastelColor: function(color = null){
+        if(!color){
+            return {hue: 360*Math.random(),
+                saturation: 20,
+                lightness: 75,
+                toString: function(){
+                    return `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
+                },
+                lighter: function(){
+                    return `hsl(${this.hue}, ${this.saturation}%, ${this.lightness + 10}%)`
+                },
+                darker: function(){
+                    return `hsl(${this.hue}, ${this.saturation}%, ${this.lightness - 10}%)`
+                }
+            } 
+        } else {
+            return {hue: (color.hue + 100) % 360,
+                saturation: color.saturation,
+                lightness: color.lightness,
+                toString: function(){
+                    return `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
+                },
+                lighter: function(){
+                    return `hsl(${this.hue}, ${this.saturation}%, ${this.lightness + 15}%)`
+                },
+                darker: function(){
+                    return `hsl(${this.hue}, ${this.saturation}%, ${this.lightness - 20}%)`
+                }
+            }
+        } 
+    },
+    setUpdateTimer: function(timer){
+        setInterval(()=>{this.draw()}, 15)
+    },
+    clamp: function(value, min, max){
+        if(value < min) return min;
+        else if(value > max) return max;
+        return value;
     }
 }
 
+
 Calculator.init();
+background.init();
+background.setUpdateTimer();
